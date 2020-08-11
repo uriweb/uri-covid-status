@@ -14,7 +14,9 @@
 
 				var d = new Array();
 				for( var x in uriCOVIDStatus) {
-					d.push([uriCOVIDStatus[x][0], uriCOVIDStatus[x][2], uriCOVIDStatus[x][3]]);
+					var da = uriCOVIDStatus[x][0].split('/');
+					da = da[0] + '/' + da[1];
+					d.push([da, uriCOVIDStatus[x][2], uriCOVIDStatus[x][3]]);
 				}
 				var data = google.visualization.arrayToDataTable(d);
 				
@@ -31,8 +33,10 @@
 						}
 					}
 				};
-
-				var chart = new google.visualization.AreaChart(document.getElementById('covid-line-chart'));
+				
+				var el = document.getElementById('covid-line-chart');
+				el.style.height = '360px';
+				var chart = new google.visualization.AreaChart(el);
 
 				chart.draw(data, options);
       }
