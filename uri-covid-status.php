@@ -119,7 +119,8 @@ add_shortcode( 'uri-covid-status', 'uri_covid_shortcode' );
  */
 function uri_covid_get_days() {
 	if ( FALSE === ( $days = get_transient( 'uri_covid_days' ) ) ) {
-		uri_covid_query_spreadsheet();
+		$days = uri_covid_query_spreadsheet();
+		set_transient( 'uri_covid_days', $days, HOUR_IN_SECONDS );
 	}
 	return $days;
 }
@@ -128,8 +129,15 @@ function uri_covid_get_days() {
  * Load the data from the source spreadsheet
  */
 function uri_covid_query_spreadsheet() {
-	$data_url = 'https://spreadsheets.google.com/feeds/list/1o3Lr_FLnngmVMx3oPGwh4XHK4B3jmiuXLGpKOsJN6mE/1/public/values?alt=json';
-	$data = json_decode( file_get_contents( $data_url ) );
+	// set up the sheet id and which sheet to use
+	$sheet_id = '1o3Lr_FLnngmVMx3oPGwh4XHK4B3jmiuXLGpKOsJN6mE/1';
+	// assemble the URL
+	$data_url = 'https://spreadsheets.google.com/feeds/list/' . $sheet_id . '/public/values?alt=json';
+	$request = wp_remote_get( $data_url );
+	// there aren't really any great options if we hit an error, but this is how it'd work
+	// 	if( is_wp_error( $request ) ) {
+	// 	}
+	$data = json_decode( $request['body'] );
 
 	$days = array();
 
@@ -142,8 +150,6 @@ function uri_covid_query_spreadsheet() {
 			'occupied_quarantine_beds' => $row->{'gsx$occupiedquarbeds'}->{'$t'}
 		);
 	}
-	
-	set_transient( 'uri_covid_days', $days, HOUR_IN_SECONDS );
-	
+	return $days;
 }
 
