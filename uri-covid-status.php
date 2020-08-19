@@ -28,7 +28,7 @@ function uri_covid_scripts() {
 			'Date',
 			'Tests',
 			'Positive cases',
-			'Students in isolation',
+			'Students in isolation / quarantine',
 		)
 	);
 	foreach( $days as $day ) {
@@ -43,15 +43,6 @@ function uri_covid_scripts() {
 }
 
 
-/**
- * Helper function to calculate and format percentages
- */
-function uri_covid_percentage( $x, $y, $default=0 ) {
-	if( $y == 0 ) {
-		return $default;
-	}
-	return number_format( $x / $y * 100, 0 );
-}
 
 /**
  * Shortcode callback
@@ -61,33 +52,35 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 	uri_covid_scripts();
 	
 	$days = uri_covid_get_days();
+	$totals = uri_covid_total_days( $days );
 	$last_day = end( $days );
+	
 	
 
 	$output = '<div class="uri-covid-status">';
 	
+	$date = date( 'F j, Y', strtotime( $last_day['date'] ) );
+	$output .= '<h2>Coronavirus data for ' . $date . '</h2>';
 
 	if ( shortcode_exists( 'cl-metric' ) ) {
-		$date = date( 'F j, Y', strtotime( $last_day['date'] ) );
-		$output .= '<h2>Coronavirus data for ' . $date . '</h2>';
 
 		$output .= '<div class="cl-tiles fifths">';
 
-		$v = ( empty( $last_day['tests'] ) ) ? 'O' : $last_day['tests'];
+		$v = ( empty( $last_day['tests'] ) ) ? 'O' : _uri_covid_number_format( $last_day['tests'] );
 		$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="Tests Administered"]', FALSE );
 
-		$v = ( empty( $last_day['positives'] ) ) ? 'O' : $last_day['positives'];
-		$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="Positive Tests"]', FALSE );
+		$v = ( empty( $last_day['positives'] ) ) ? 'O' : _uri_covid_number_format( $last_day['positives'] );
+		$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="Positive Cases"]', FALSE );
 
-		$v = uri_covid_percentage( $last_day['positives'], $last_day['tests'] );
+		$v = _uri_covid_percentage( $last_day['positives'], $last_day['tests'] );
 		$output .= do_shortcode( '[cl-metric metric="' . $v . '%" caption="Percentage of positive tests"]', FALSE );
 
-		$v = ( empty( $last_day['occupied_quarantine_beds'] ) ) ? 'O' : $last_day['occupied_quarantine_beds'];
+		$v = ( empty( $last_day['occupied_quarantine_beds'] ) ) ? 'O' : _uri_covid_number_format( $last_day['occupied_quarantine_beds'] );
 		$s = ( $v == 1 ) ? 'Student' : 'Students';
-		$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $s . ' in isolation"]', FALSE );
+		$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $s . ' in isolation / quarantine"]', FALSE );
 
-		$v = uri_covid_percentage( $last_day['occupied_quarantine_beds'], $last_day['total_quarantine_beds'] );
-		$output .= do_shortcode( '[cl-metric metric="' . $v . '%" caption="Isolation beds occupied"]', FALSE );
+		$v = _uri_covid_percentage( $last_day['occupied_quarantine_beds'], $last_day['total_quarantine_beds'] );
+		$output .= do_shortcode( '[cl-metric metric="' . $v . '%" caption="Isolation / quarantine beds occupied"]', FALSE );
 
 		$output .= '</div>';
 
@@ -95,14 +88,41 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 		$output .= '
 	Date = ' . $last_day['date'] . '<br>
 	Total number of tests = ' . $last_day['tests'] . '<br>
-	Total Positive Cases = ' . $last_day['positives'] . '<br>
+	Total positive cases = ' . $last_day['positives'] . '<br>
 	Percent Positive = ' .  number_format( $last_day['positives'] / $last_day['tests'] * 100, 2 ) . '<br>
-	Number of occupied isolation/quarantine beds = ' . $last_day['occupied_quarantine_beds'] . '<br>
-	Percent of occupied isolation/quarantine beds = ' . number_format( $last_day['occupied_quarantine_beds'] / $last_day['total_quarantine_beds'] * 100, 2 ) . '
+	Number of occupied isolation / quarantine beds = ' . $last_day['occupied_quarantine_beds'] . '<br>
+	Percent of occupied isolation / quarantine beds = ' . number_format( $last_day['occupied_quarantine_beds'] / $last_day['total_quarantine_beds'] * 100, 2 ) . '
 	';
 	}
 	
-	$output .= '<div id="covid-line-chart"></div>';
+	$output .= '<div id="covid-daily-chart"></div>';
+
+	$output .= '<br><br>';
+
+	$output .= '<h2>Cumulative coronavirus testing data</h2>';
+
+	if ( shortcode_exists( 'cl-metric' ) ) {
+
+		$output .= '<div class="cl-tiles halves">';
+
+		$v = ( empty( $totals['tests'] ) ) ? 'O' : _uri_covid_number_format( $totals['tests'] );
+		$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="Total Tests" style="clear"]', FALSE );
+
+		$v = _uri_covid_percentage( $totals['positives'], $totals['tests'] );
+		$output .= do_shortcode( '[cl-metric metric="' . $v . '%" caption="Percentage of positive cases" style="clear"]', FALSE );
+
+		$output .= '</div>';
+
+	} else {
+		$output .= '
+	Date = ' . $last_day['date'] . '<br>
+	Total number of tests = ' . $last_day['tests'] . '<br>
+	Total positive cases = ' . $last_day['positives'] . '<br>
+	';
+	}
+
+	$output .= '<div id="covid-cumulative-chart"></div>';
+
 
 
 	$output .= '</div>';
@@ -128,9 +148,12 @@ function uri_covid_get_days() {
 /**
  * Load the data from the source spreadsheet
  */
+  
 function uri_covid_query_spreadsheet() {
 	// set up the sheet id and which sheet to use
 	$sheet_id = '1o3Lr_FLnngmVMx3oPGwh4XHK4B3jmiuXLGpKOsJN6mE/1';
+	$sheet_id = '1JXX3HNWo2ei1teygjTj1VZgPPU84PSDDgvn0wbgCC0E/1';
+	
 	// assemble the URL
 	$data_url = 'https://spreadsheets.google.com/feeds/list/' . $sheet_id . '/public/values?alt=json';
 	$request = wp_remote_get( $data_url );
@@ -152,4 +175,50 @@ function uri_covid_query_spreadsheet() {
 	}
 	return $days;
 }
+
+/**
+ * total the rows in the dataset
+ */
+function uri_covid_total_days( $days ) {
+
+	$totals = array();
+
+	foreach ( $days as $key => $day ) {
+		foreach ( $day as $k => $v ) {
+			if ( is_numeric( $v ) ) {
+				if( isset( $totals[$k] ) ) {
+					$totals[$k] += $v;
+				} else {
+					$totals[$k] = $v;
+				}
+			}
+		}
+	}
+	
+	return $totals;
+}
+
+
+/**
+ * Helper function to calculate and format percentages
+ */
+function _uri_covid_percentage( $x, $y, $default=0 ) {
+	if( 0 == $y ) {
+		return $default;
+	}
+	$percentage = $x / $y * 100;
+	if( $percentage < 1 ) {
+		return '&lt;1';
+	} else {
+		return _uri_covid_number_format( $percentage );
+	}
+}
+
+/**
+ * Helper function to format numbers
+ */
+function _uri_covid_number_format( $x ) {
+	return number_format( $x, 0, '.', ',' );
+}
+
 
