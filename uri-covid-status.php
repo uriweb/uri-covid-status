@@ -99,7 +99,8 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 
 	$output .= '<br><br>';
 
-	$output .= '<h2>Cumulative coronavirus testing data</h2>';
+	$since = date( 'F j, Y', strtotime( $days[0]['date'] ) );
+	$output .= '<h2>Cumulative testing data since ' . $since . '.</h2>';
 
 	if ( shortcode_exists( 'cl-metric' ) ) {
 
@@ -142,6 +143,9 @@ function uri_covid_get_days() {
 		$days = uri_covid_query_spreadsheet();
 		set_transient( 'uri_covid_days', $days, HOUR_IN_SECONDS );
 	}
+
+// 	unset( $days[0] );
+
 	return $days;
 }
 
@@ -151,8 +155,10 @@ function uri_covid_get_days() {
   
 function uri_covid_query_spreadsheet() {
 	// set up the sheet id and which sheet to use
+	// productoin data
 	$sheet_id = '1o3Lr_FLnngmVMx3oPGwh4XHK4B3jmiuXLGpKOsJN6mE/1';
-	$sheet_id = '1JXX3HNWo2ei1teygjTj1VZgPPU84PSDDgvn0wbgCC0E/1';
+	// test data
+ 	// $sheet_id = '1JXX3HNWo2ei1teygjTj1VZgPPU84PSDDgvn0wbgCC0E/1';
 	
 	// assemble the URL
 	$data_url = 'https://spreadsheets.google.com/feeds/list/' . $sheet_id . '/public/values?alt=json';
@@ -194,7 +200,6 @@ function uri_covid_total_days( $days ) {
 			}
 		}
 	}
-	
 	return $totals;
 }
 
@@ -207,7 +212,7 @@ function _uri_covid_percentage( $x, $y, $default=0 ) {
 		return $default;
 	}
 	$percentage = $x / $y * 100;
-	if( $percentage < 1 ) {
+	if( $percentage < 1 && $percentage > 0 ) {
 		return '&lt;1';
 	} else {
 		return _uri_covid_number_format( $percentage );
