@@ -67,17 +67,20 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 		$output .= '<div class="cl-tiles fifths">';
 
 		$v = ( empty( $last_day['tests'] ) ) ? 'O' : _uri_covid_number_format( $last_day['tests'] );
-		$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="Tests Administered"]', FALSE );
+		$caption = ( 1 == $v ) ? 'Test Administered': 'Tests Administered';
+		$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $caption . '"]', FALSE );
 
 		$v = ( empty( $last_day['positives'] ) ) ? 'O' : _uri_covid_number_format( $last_day['positives'] );
-		$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="Positive Cases"]', FALSE );
+		$caption = ( 1 == $v ) ? 'Positive Case': 'Positive Cases';
+		$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $caption . '"]', FALSE );
 
 		$v = _uri_covid_percentage( $last_day['positives'], $last_day['tests'] );
 		$output .= do_shortcode( '[cl-metric metric="' . $v . '%" caption="Percentage of positive tests"]', FALSE );
 
 		$v = ( empty( $last_day['occupied_quarantine_beds'] ) ) ? 'O' : _uri_covid_number_format( $last_day['occupied_quarantine_beds'] );
-		$s = ( $v == 1 ) ? 'Student' : 'Students';
-		$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $s . ' in isolation / quarantine"]', FALSE );
+		$s = ( 1 == $v ) ? 'Student' : 'Students';
+		$caption = $s . ' in isolation / quarantine';
+		$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $caption . '"]', FALSE );
 
 		$v = _uri_covid_percentage( $last_day['occupied_quarantine_beds'], $last_day['total_quarantine_beds'] );
 		$output .= do_shortcode( '[cl-metric metric="' . $v . '%" caption="Isolation / quarantine beds occupied"]', FALSE );
