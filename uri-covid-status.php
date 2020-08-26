@@ -95,8 +95,8 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 	';
 	}
 	
-	$output .= '<div id="covid-daily-chart"></div>';
-
+	$output .= '<div class="cl-tiles halves"><div id="covid-daily-tests"></div><div id="covid-iso-quar"></div></div>';
+	
 	$output .= '<br><br>';
 
 	$since = date( 'F j, Y', strtotime( $days[0]['date'] ) );
@@ -175,8 +175,8 @@ function uri_covid_query_spreadsheet() {
 			'date' => $row->{'gsx$date'}->{'$t'},
 			'tests' => $row->{'gsx$tests'}->{'$t'},
 			'positives' => $row->{'gsx$positives'}->{'$t'},
-			'total_quarantine_beds' => $row->{'gsx$quarbeds'}->{'$t'},
-			'occupied_quarantine_beds' => $row->{'gsx$occupiedquarbeds'}->{'$t'}
+			'total_quarantine_beds' => $row->{'gsx$isoquarbeds'}->{'$t'},
+			'occupied_quarantine_beds' => $row->{'gsx$occupiedisoquarbeds'}->{'$t'}
 		);
 	}
 	return $days;
