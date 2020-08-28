@@ -20,6 +20,9 @@ define( 'URI_COVID_URL', str_replace('/inc', '/', plugins_url( 'inc', __FILE__ )
 // require the code to handle where to find template files
 require_once URI_COVID_PATH . 'inc/shortcode.php';
 
+// activate the admin settings screen
+require_once URI_COVID_PATH . 'inc/settings.php';
+
 
 /**
  * Loads the javascript

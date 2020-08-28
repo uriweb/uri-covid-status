@@ -48,9 +48,7 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 	$end = strtotime( $attributes['end'] );
 	$style = $attributes['style'];
 	
-	uri_covid_styles();
 
-	
 	$days = uri_covid_get_days( $start, $end );
 	$totals = uri_covid_total_days( $days );
 	$range_in_days = round( ( $end - $start ) / ( 60 * 60 * 24 ) );
@@ -130,6 +128,10 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 	}
 	
 	$output .= $attributes['after'];
+	
+	if ( ! empty ( $output ) ) {
+		uri_covid_styles();
+	}
 	return $output;
 
 }
