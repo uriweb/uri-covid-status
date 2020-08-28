@@ -92,12 +92,13 @@
 				
 				var options = getDefaultOptions();
 				options.title = 'Total tests by date';
-				options.colors = ['#2277b3', '#002147'];
+				options.colors = ['#2277b3', '#002147']; // gold: #B5985A
+				options.isStacked = true;
 				options.vAxis.viewWindow = { min: 0, max: ymax + 20};
 				
 				var el = document.getElementById('covid-cumulative-chart');
 				el.style.height = '360px';
-				var chart = new google.visualization.AreaChart(el);
+				var chart = new google.visualization.ColumnChart(el);
 
 				chart.draw(data, options);
       }
@@ -165,7 +166,7 @@
  					format: '#'
 				},
 				isStacked: false,
-				bar: { groupWidth: '100%' },
+				bar: { groupWidth: '90%' },
 			};
 		}
 

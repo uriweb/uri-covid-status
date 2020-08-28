@@ -17,15 +17,16 @@ if ( !defined('ABSPATH') )
  * total-tests         total tests administered (start date, end date)
  * total-positive      total positive cases (start date, end date)
  * total-isolation     total students in iso (start date, end date)
+ *                     - displays data from last date in range
  * percent-isolation   percentage of iso beds in use (start date, end date)
+ *                     - displays data from last date in range
  * percent-positive    percentage of positive cases (start date, end date)
  * 
  * chart-isolation:    iso (start date, end date)
  * chart-tests:        tests administered (start date, end date)
  * chart-positives:    positive tests (start date, end date)
  * 
- * headline date range / since / for
- *  
+ * date-range:				 displays the date range either as a single date or start – end.
  */
 function uri_covid_shortcode($attributes, $content, $shortcode) {
 
@@ -38,41 +39,46 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 		'start' => 'Jan 1, 2020',
 		'end' => 'today',
 		'display_date_format' => 'F j',
+		'style' => '',
 		'before' => '',
 		'after' => '',
 	), $attributes, $shortcode );
 	
 	$start = strtotime( $attributes['start'] );
 	$end = strtotime( $attributes['end'] );
+	$style = $attributes['style'];
 	
 	uri_covid_styles();
 
 	
 	$days = uri_covid_get_days( $start, $end );
 	$totals = uri_covid_total_days( $days );
+	$range_in_days = round( ( $end - $start ) / ( 60 * 60 * 24 ) );
 
 	$output = $attributes['before'];
 	
 	switch ( $attributes['display'] ) {
-		case 'headline':
-			$output .= '<h2>Coronavirus data for ' . 
-			date( $attributes['display_date_format'], $start ) . ' – ' . 
-			date( $attributes['display_date_format'], $end ) . '</h2>';	
+		case 'date-range':
+			if ( $start != $end ) {
+				$output .= date( $attributes['display_date_format'], $start ) . ' – ' . date( $attributes['display_date_format'], $end );	
+			} else {
+				$output .= date( $attributes['display_date_format'], $start );	
+			}
 		break;
 		case 'total-tests':
 			$v = ( empty( $totals['tests'] ) ) ? 'O' : _uri_covid_number_format( $totals['tests'] );
-			$caption = ( 1 == $v ) ? 'Test Administered': 'Tests Administered';
+			$caption = ( 1 == $v ) ? 'Test administered': 'Tests administered';
 			if ( shortcode_exists( 'cl-metric' ) ) {
-				$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $caption . '" class="fitted uri-covid-status"]', FALSE );	
+				$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $caption . '" class="fitted uri-covid-status" style="' . $style . '"]', FALSE );	
 			} else {
 				$output .= '<p class="uri-covid-status">' . $v . ' ' . $caption . '</p>';
 			}
 		break;
 		case 'total-positive':
 			$v = ( empty( $totals['positives'] ) ) ? 'O' : _uri_covid_number_format( $totals['positives'] );
-			$caption = ( 1 == $v ) ? 'Positive Case': 'Positive Cases';
+			$caption = ( 1 == $v ) ? 'Positive case': 'Positive cases';
 			if ( shortcode_exists( 'cl-metric' ) ) {
-				$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $caption . '" class="fitted uri-covid-status"]', FALSE );	
+				$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $caption . '" class="fitted uri-covid-status" style="' . $style . '"]', FALSE );	
 			} else {
 				$output .= '<p class="uri-covid-status">' . $v . ' ' . $caption . '</p>';
 			}
@@ -80,25 +86,31 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 		case 'percent-positive':
 			$v = _uri_covid_percentage( $totals['positives'], $totals['tests'] );
 			if ( shortcode_exists( 'cl-metric' ) ) {
-				$output .= do_shortcode( '[cl-metric metric="' . $v . '%" caption="Percentage of positive tests" class="fitted uri-covid-status"]', FALSE );
+				$output .= do_shortcode( '[cl-metric metric="' . $v . '%" caption="Positive test rate" class="fitted uri-covid-status" style="' . $style . '"]', FALSE );
 			} else {
 				$output .= '<p class="uri-covid-status">' . $v . '% positive tests</p>';
 			}
 		break;
 		case 'total-isolation':
-			$v = ( empty( $totals['occupied_quarantine_beds'] ) ) ? 'O' : _uri_covid_number_format( $totals['occupied_quarantine_beds'] );
+			// we can't add these up; we can't average them, so only show the last day
+			// @todo: provide a message to the user
+			$last_day = $days[count($days)-1];
+			$v = ( empty( $last_day['occupied_quarantine_beds'] ) ) ? 'O' : _uri_covid_number_format( $last_day['occupied_quarantine_beds'] );
 			$s = ( 1 == $v ) ? 'Student' : 'Students';
 			$caption = $s . ' in isolation / quarantine';
 			if ( shortcode_exists( 'cl-metric' ) ) {
-				$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $caption . '" class="fitted uri-covid-status"]', FALSE );
+				$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $caption . '" class="fitted uri-covid-status" style="' . $style . '"]', FALSE );
 			} else {
 				$output .= '<p class="uri-covid-status">' . $v . ' ' . $caption . '</p>';
 			}
 		break;
 		case 'percent-isolation':
-			$v = _uri_covid_percentage( $totals['occupied_quarantine_beds'], $totals['total_quarantine_beds'] );
+			// we can't add these up; we can't average them, so only show the last day
+			// @todo: provide a message to the user
+			$last_day = $days[count($days)-1];
+			$v = _uri_covid_percentage( $last_day['occupied_quarantine_beds'], $last_day['total_quarantine_beds'] );
 			if ( shortcode_exists( 'cl-metric' ) ) {
-				$output .= do_shortcode( '[cl-metric metric="' . $v . '%" caption="Isolation / quarantine beds occupied" class="fitted uri-covid-status"]', FALSE );
+				$output .= do_shortcode( '[cl-metric metric="' . $v . '%" caption="Isolation / quarantine beds occupied" class="fitted uri-covid-status" style="' . $style . '"]', FALSE );
 			} else {
 				$output .= '<p class="uri-covid-status">' . $v . '% of isolation / quarantine beds occupied</p>';
 			}
