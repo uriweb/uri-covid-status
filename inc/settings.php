@@ -48,7 +48,7 @@ function uri_covid_status_settings_page() {
 
 ?>
 <div class="wrap">
-<h1>URI COVID Status</h1>
+<h1>URI COVID Tracker</h1>
 
 <form method="post" action="">
     <?php
