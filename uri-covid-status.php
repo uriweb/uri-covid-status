@@ -14,6 +14,11 @@ Author URI:
 if ( !defined('ABSPATH') )
 	die('-1');
 
+define( 'URI_COVID_PATH', plugin_dir_path( __FILE__ ) );
+define( 'URI_COVID_URL', str_replace('/inc', '/', plugins_url( 'inc', __FILE__ ) ) );
+
+// require the code to handle where to find template files
+require_once URI_COVID_PATH . 'inc/shortcode.php';
 
 
 /**
@@ -43,113 +48,80 @@ function uri_covid_scripts() {
 }
 
 
-
 /**
- * Shortcode callback
+ * Loads the CSS
  */
-function uri_covid_shortcode($attributes, $content, $shortcode) {
-   
-	uri_covid_scripts();
-	
-	$days = uri_covid_get_days();
-	$totals = uri_covid_total_days( $days );
-	$last_day = end( $days );
-	
-	
-
-	$output = '<div class="uri-covid-status">';
-	
-	$date = date( 'F j, Y', strtotime( $last_day['date'] ) );
-	$output .= '<h2>Coronavirus data for ' . $date . '</h2>';
-
-	if ( shortcode_exists( 'cl-metric' ) ) {
-
-		$output .= '<div class="cl-tiles fifths">';
-
-		$v = ( empty( $last_day['tests'] ) ) ? 'O' : _uri_covid_number_format( $last_day['tests'] );
-		$caption = ( 1 == $v ) ? 'Test Administered': 'Tests Administered';
-		$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $caption . '"]', FALSE );
-
-		$v = ( empty( $last_day['positives'] ) ) ? 'O' : _uri_covid_number_format( $last_day['positives'] );
-		$caption = ( 1 == $v ) ? 'Positive Case': 'Positive Cases';
-		$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $caption . '"]', FALSE );
-
-		$v = _uri_covid_percentage( $last_day['positives'], $last_day['tests'] );
-		$output .= do_shortcode( '[cl-metric metric="' . $v . '%" caption="Percentage of positive tests"]', FALSE );
-
-		$v = ( empty( $last_day['occupied_quarantine_beds'] ) ) ? 'O' : _uri_covid_number_format( $last_day['occupied_quarantine_beds'] );
-		$s = ( 1 == $v ) ? 'Student' : 'Students';
-		$caption = $s . ' in isolation / quarantine';
-		$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $caption . '"]', FALSE );
-
-		$v = _uri_covid_percentage( $last_day['occupied_quarantine_beds'], $last_day['total_quarantine_beds'] );
-		$output .= do_shortcode( '[cl-metric metric="' . $v . '%" caption="Isolation / quarantine beds occupied"]', FALSE );
-
-		$output .= '</div>';
-
-	} else {
-		$output .= '
-	Date = ' . $last_day['date'] . '<br>
-	Total number of tests = ' . $last_day['tests'] . '<br>
-	Total positive cases = ' . $last_day['positives'] . '<br>
-	Percent Positive = ' .  number_format( $last_day['positives'] / $last_day['tests'] * 100, 2 ) . '<br>
-	Number of occupied isolation / quarantine beds = ' . $last_day['occupied_quarantine_beds'] . '<br>
-	Percent of occupied isolation / quarantine beds = ' . number_format( $last_day['occupied_quarantine_beds'] / $last_day['total_quarantine_beds'] * 100, 2 ) . '
-	';
-	}
-	
-	$output .= '<div class="cl-tiles halves"><div id="covid-daily-tests"></div><div id="covid-iso-quar"></div></div>';
-	
-	$output .= '<br><br>';
-
-	$since = date( 'F j, Y', strtotime( $days[0]['date'] ) );
-	$output .= '<h2>Cumulative testing data since ' . $since . '.</h2>';
-
-	if ( shortcode_exists( 'cl-metric' ) ) {
-
-		$output .= '<div class="cl-tiles halves">';
-
-		$v = ( empty( $totals['tests'] ) ) ? 'O' : _uri_covid_number_format( $totals['tests'] );
-		$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="Total Tests" style="clear"]', FALSE );
-
-		$v = _uri_covid_percentage( $totals['positives'], $totals['tests'] );
-		$output .= do_shortcode( '[cl-metric metric="' . $v . '%" caption="Percentage of positive cases" style="clear"]', FALSE );
-
-		$output .= '</div>';
-
-	} else {
-		$output .= '
-	Date = ' . $last_day['date'] . '<br>
-	Total number of tests = ' . $last_day['tests'] . '<br>
-	Total positive cases = ' . $last_day['positives'] . '<br>
-	';
-	}
-
-	$output .= '<div id="covid-cumulative-chart"></div>';
-
-
-
-	$output .= '</div>';
-
-	return $output;
-
+function uri_covid_styles() {
+	wp_register_style( 'uri-covid-status', plugins_url( '/css/covid.css', __FILE__ ) );
+	wp_enqueue_style( 'uri-covid-status' );
 }
-add_shortcode( 'uri-covid-status', 'uri_covid_shortcode' );
-
 
 
 /**
  * Load the data from the database
+ * @param start obj a date object
+ * @param end obj a date object
+ * @return arr
  */
-function uri_covid_get_days() {
+function uri_covid_get_days( $start=FALSE, $end=FALSE ) {
+
 	if ( FALSE === ( $days = get_transient( 'uri_covid_days' ) ) ) {
 		$days = uri_covid_query_spreadsheet();
 		set_transient( 'uri_covid_days', $days, HOUR_IN_SECONDS );
 	}
-
-// 	unset( $days[0] );
-
+	
+	if ( $start || $end ) {
+		// validate date range, segment the days data
+		if ( $end < $start ) {
+			// problem: end date is before the start date
+			// for now, resolve it by removing the end date
+			// @todo: display an error
+			$end = FALSE;
+		}
+		if ( FALSE === $end ) {
+			$end = strtotime('today');
+		}
+		if ( FALSE === $start ) {
+			$start = strtotime('yesterday');
+		}
+		return uri_covid_slice_days( $days, $start, $end );
+	}
+	
+	// no dates selected, return the whole array
 	return $days;
+}
+
+/**
+ * Get just the desired date range from the days array.
+ * @param days arr the dates array
+ * @param start obj a date object
+ * @param end obj a date object
+ * @return arr
+ */
+function uri_covid_slice_days( $days, $start, $end ) {
+	$s = date( 'n/j/Y', $start );
+	$e = date( 'n/j/Y', $end );	
+//	$range = round( ( $end - $start ) / ( 60 * 60 * 24 ) );
+	$total = count( $days );
+	$first = $days[0];
+	$last = $days[$total-1];
+//	$mid = array_slice($days, floor($total/2), floor($total/2) );
+	
+	if ( $s < $first['date'] ) {
+		// @todo: notify user if the requested date range is outside of the available data
+		$s = $first['date'];
+	}
+	if ( $e > $last['date'] ) {
+		// @todo: notify user if the requested date range is outside of the available data
+		$e = $last['date'];
+	}
+
+	$start_key = array_search( $s, array_column( $days, 'date' ) );
+	$end_key = array_search( $e, array_column( $days, 'date' ) );
+
+	$slice = array_slice($days, $start_key, $end_key+1 );
+		
+	return $slice;
 }
 
 /**
@@ -183,50 +155,6 @@ function uri_covid_query_spreadsheet() {
 		);
 	}
 	return $days;
-}
-
-/**
- * total the rows in the dataset
- */
-function uri_covid_total_days( $days ) {
-
-	$totals = array();
-
-	foreach ( $days as $key => $day ) {
-		foreach ( $day as $k => $v ) {
-			if ( is_numeric( $v ) ) {
-				if( isset( $totals[$k] ) ) {
-					$totals[$k] += $v;
-				} else {
-					$totals[$k] = $v;
-				}
-			}
-		}
-	}
-	return $totals;
-}
-
-
-/**
- * Helper function to calculate and format percentages
- */
-function _uri_covid_percentage( $x, $y, $default=0 ) {
-	if( 0 == $y ) {
-		return $default;
-	}
-	$percentage = $x / $y * 100;
-	if( $percentage < 1 && $percentage > 0 ) {
-		return '&lt;1';
-	} else {
-		return _uri_covid_number_format( $percentage );
-	}
-}
-
-/**
- * Helper function to format numbers
- */
-function _uri_covid_number_format( $x ) {
-	return number_format( $x, 0, '.', ',' );
 }
 
 

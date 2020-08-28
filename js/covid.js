@@ -8,9 +8,15 @@
 		gscript.onload = function () {
   
 			google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(drawPositivesChart);
-      google.charts.setOnLoadCallback(drawIsoQuarChart);
-      google.charts.setOnLoadCallback(drawCumulativeChart);
+			if ( document.getElementById('covid-daily-tests') ) {
+	      google.charts.setOnLoadCallback(drawPositivesChart);
+			}
+			if ( document.getElementById('covid-iso-quar') ) {
+	      google.charts.setOnLoadCallback(drawIsoQuarChart);
+	    }
+			if ( document.getElementById('covid-cumulative-chart') ) {
+	      google.charts.setOnLoadCallback(drawCumulativeChart);
+	    }
       
       function drawPositivesChart() {
       
@@ -102,6 +108,7 @@
 			var today = new Date();
 			var startDate = new Date();
 			startDate.setMonth( startDate.getMonth() - 2 );
+			var title = ( ! uri_covid_status_is_touch_device4()) ? 'Drag chart to change timeline; right click to reset.' : '';
 			return {
 				backgroundColor: '#fafafa',
 				curveType: 'function',
@@ -164,3 +171,21 @@
 
 
 })();
+
+function uri_covid_status_is_touch_device4() {
+    
+    var prefixes = ' -webkit- -moz- -o- -ms- '.split(' ');
+    
+    var mq = function (query) {
+        return window.matchMedia(query).matches;
+    }
+
+    if (('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch) {
+        return true;
+    }
+
+    // include the 'heartz' as a way to have a non matching MQ to help terminate the join
+    // https://git.io/vznFH
+    var query = ['(', prefixes.join('touch-enabled),('), 'heartz', ')'].join('');
+    return mq(query);
+}
