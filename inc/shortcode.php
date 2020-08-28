@@ -64,7 +64,7 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 			}
 		break;
 		case 'total-tests':
-			$v = ( empty( $totals['tests'] ) ) ? 'O' : _uri_covid_number_format( $totals['tests'] );
+			$v = ( empty( $totals['tests'] ) ) ? '&#8203;0&#8203;' : _uri_covid_number_format( $totals['tests'] );
 			$caption = ( 1 == $v ) ? 'Test administered': 'Tests administered';
 			if ( shortcode_exists( 'cl-metric' ) ) {
 				$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $caption . '" class="fitted uri-covid-status" style="' . $style . '"]', FALSE );	
@@ -73,7 +73,7 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 			}
 		break;
 		case 'total-positive':
-			$v = ( empty( $totals['positives'] ) ) ? 'O' : _uri_covid_number_format( $totals['positives'] );
+			$v = ( empty( $totals['positives'] ) ) ? '&#8203;0&#8203;' : _uri_covid_number_format( $totals['positives'] );
 			$caption = ( 1 == $v ) ? 'Positive case': 'Positive cases';
 			if ( shortcode_exists( 'cl-metric' ) ) {
 				$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $caption . '" class="fitted uri-covid-status" style="' . $style . '"]', FALSE );	
@@ -93,7 +93,7 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 			// we can't add these up; we can't average them, so only show the last day
 			// @todo: provide a message to the user
 			$last_day = $days[count($days)-1];
-			$v = ( empty( $last_day['occupied_quarantine_beds'] ) ) ? 'O' : _uri_covid_number_format( $last_day['occupied_quarantine_beds'] );
+			$v = ( empty( $last_day['occupied_quarantine_beds'] ) ) ? '&#8203;0&#8203;' : _uri_covid_number_format( $last_day['occupied_quarantine_beds'] );
 			$s = ( 1 == $v ) ? 'Student' : 'Students';
 			$caption = $s . ' in isolation / quarantine';
 			if ( shortcode_exists( 'cl-metric' ) ) {
