@@ -42,6 +42,7 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 		'style' => '',
 		'before' => '',
 		'after' => '',
+		'caption' => ''
 	), $attributes, $shortcode );
 	
 	$start = strtotime( $attributes['start'] );
@@ -67,7 +68,11 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 		break;
 		case 'total-tests':
 			$v = ( empty( $totals['tests'] ) ) ? '&#8203;0&#8203;' : _uri_covid_number_format( $totals['tests'] );
-			$caption = ( 1 == $v ) ? 'Test administered': 'Tests administered';
+			if ( '' !== $attributes['caption'] ) {
+				$caption = $attributes['caption'];
+			} else {
+				$caption = ( 1 == $v ) ? 'Test administered': 'Tests administered';
+			}
 			if ( shortcode_exists( 'cl-metric' ) ) {
 				$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $caption . '" class="fitted uri-covid-status" style="' . $style . '"]', FALSE );	
 			} else {
@@ -76,7 +81,11 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 		break;
 		case 'total-positive':
 			$v = ( empty( $totals['positives'] ) ) ? '&#8203;0&#8203;' : _uri_covid_number_format( $totals['positives'] );
-			$caption = ( 1 == $v ) ? 'Positive case': 'Positive cases';
+			if ( '' !== $attributes['caption'] ) {
+				$caption = $attributes['caption'];
+			} else {
+				$caption = ( 1 == $v ) ? 'Positive case': 'Positive cases';
+			}
 			if ( shortcode_exists( 'cl-metric' ) ) {
 				$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $caption . '" class="fitted uri-covid-status" style="' . $style . '"]', FALSE );	
 			} else {
@@ -85,8 +94,13 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 		break;
 		case 'percent-positive':
 			$v = _uri_covid_percentage( $totals['positives'], $totals['tests'] );
+			if ( '' !== $attributes['caption'] ) {
+				$caption = $attributes['caption'];
+			} else {
+				$caption = 'Positive test rate';
+			}
 			if ( shortcode_exists( 'cl-metric' ) ) {
-				$output .= do_shortcode( '[cl-metric metric="' . $v . '%" caption="Positive test rate" class="fitted uri-covid-status" style="' . $style . '"]', FALSE );
+				$output .= do_shortcode( '[cl-metric metric="' . $v . '%" caption="' . $caption . '" class="fitted uri-covid-status" style="' . $style . '"]', FALSE );
 			} else {
 				$output .= '<p class="uri-covid-status">' . $v . '% positive tests</p>';
 			}
@@ -96,8 +110,12 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 			// @todo: provide a message to the user
 			$last_day = $days[count($days)-1];
 			$v = ( empty( $last_day['occupied_quarantine_beds'] ) ) ? '&#8203;0&#8203;' : _uri_covid_number_format( $last_day['occupied_quarantine_beds'] );
-			$s = ( 1 == $v ) ? 'Student' : 'Students';
-			$caption = $s . ' in isolation / quarantine';
+			if ( '' !== $attributes['caption'] ) {
+				$caption = $attributes['caption'];
+			} else {
+				$s = ( 1 == $v ) ? 'Student' : 'Students';
+				$caption = $s . ' in isolation / quarantine';
+			}
 			if ( shortcode_exists( 'cl-metric' ) ) {
 				$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $caption . '" class="fitted uri-covid-status" style="' . $style . '"]', FALSE );
 			} else {
@@ -109,8 +127,13 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 			// @todo: provide a message to the user
 			$last_day = $days[count($days)-1];
 			$v = _uri_covid_percentage( $last_day['occupied_quarantine_beds'], $last_day['total_quarantine_beds'] );
+			if ( '' !== $attributes['caption'] ) {
+				$caption = $attributes['caption'];
+			} else {
+				$caption = 'Isolation / quarantine beds occupied';
+			}
 			if ( shortcode_exists( 'cl-metric' ) ) {
-				$output .= do_shortcode( '[cl-metric metric="' . $v . '%" caption="Isolation / quarantine beds occupied" class="fitted uri-covid-status" style="' . $style . '"]', FALSE );
+				$output .= do_shortcode( '[cl-metric metric="' . $v . '%" caption="' . $caption . '" class="fitted uri-covid-status" style="' . $style . '"]', FALSE );
 			} else {
 				$output .= '<p class="uri-covid-status">' . $v . '% of isolation / quarantine beds occupied</p>';
 			}
