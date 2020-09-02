@@ -57,10 +57,12 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 	
 	switch ( $attributes['display'] ) {
 		case 'date-range':
+			$s = uri_covid_start_date( $days, $start );
+			$e = uri_covid_end_date( $days, $end );
 			if ( $start != $end ) {
-				$output .= date( $attributes['display_date_format'], $start ) . ' – ' . date( $attributes['display_date_format'], $end );	
+				$output .= date( $attributes['display_date_format'], $s ) . ' – ' . date( $attributes['display_date_format'], $e );	
 			} else {
-				$output .= date( $attributes['display_date_format'], $start );	
+				$output .= date( $attributes['display_date_format'], $e );	
 			}
 		break;
 		case 'total-tests':

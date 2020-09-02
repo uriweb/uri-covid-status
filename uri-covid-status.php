@@ -102,29 +102,56 @@ function uri_covid_get_days( $start=FALSE, $end=FALSE ) {
  * @return arr
  */
 function uri_covid_slice_days( $days, $start, $end ) {
-	$s = date( 'n/j/Y', $start );
-	$e = date( 'n/j/Y', $end );	
-//	$range = round( ( $end - $start ) / ( 60 * 60 * 24 ) );
-	$total = count( $days );
-	$first = $days[0];
-	$last = $days[$total-1];
-//	$mid = array_slice($days, floor($total/2), floor($total/2) );
+	$s = _uri_covid_date_format( uri_covid_start_date( $days, $start ) );
+	$e = _uri_covid_date_format (uri_covid_end_date( $days, $end ) );
 	
-	if ( $s < $first['date'] ) {
-		// @todo: notify user if the requested date range is outside of the available data
-		$s = $first['date'];
-	}
-	if ( $e > $last['date'] ) {
-		// @todo: notify user if the requested date range is outside of the available data
-		$e = $last['date'];
-	}
-
 	$start_key = array_search( $s, array_column( $days, 'date' ) );
 	$end_key = array_search( $e, array_column( $days, 'date' ) );
 
 	$slice = array_slice($days, $start_key, $end_key+1 );
 		
 	return $slice;
+}
+
+/**
+ * Check that the specified end date is within the days range.
+ * @todo: notify user if the requested date range is outside of the available data
+ * @param days arr the dates array
+ * @param end obj a date object
+ * @return date
+ */
+function uri_covid_start_date( $days, $start ) {
+	$s = _uri_covid_date_format( $start );
+	$first = $days[0];
+	if ( $s < $first['date'] ) {
+		return strtotime( $first['date'] );
+	}
+	return $start;
+}
+
+/**
+ * Check that the specified end date is within the days range.
+ * @todo: notify user if the requested date range is outside of the available data
+ * @param days arr the dates array
+ * @param end obj a date object
+ * @return date
+ */
+function uri_covid_end_date( $days, $end ) {
+	$e = _uri_covid_date_format( $end );
+	$last = $days[count( $days ) - 1];
+	if ( $e > $last['date'] ) {
+		return strtotime( $last['date'] );
+	}
+	return $end;
+}
+
+/**
+ * Helper function to return a date in a particular format.
+ * @param obj date
+ * @return str
+ */
+function _uri_covid_date_format( $date ) {
+	return date( 'n/j/Y', $date );
 }
 
 /**
