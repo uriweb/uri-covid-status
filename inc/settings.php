@@ -5,7 +5,7 @@
  */
 
 function uri_covid_status_delete_transients() {
-	if( 'uri_covid_status' === $_POST['option_page'] ) {
+	if( isset( $_POST['option_page'] ) && 'uri_covid_status' === $_POST['option_page'] ) {
 		delete_transient('uri_covid_days');
 	}
 }
