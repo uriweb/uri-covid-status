@@ -163,7 +163,7 @@ function uri_covid_query_spreadsheet() {
 	// productoin data
 	$sheet_id = '1o3Lr_FLnngmVMx3oPGwh4XHK4B3jmiuXLGpKOsJN6mE/1';
 	// test data
- 	// $sheet_id = '1JXX3HNWo2ei1teygjTj1VZgPPU84PSDDgvn0wbgCC0E/1';
+ 	$sheet_id = '1JXX3HNWo2ei1teygjTj1VZgPPU84PSDDgvn0wbgCC0E/1';
 	
 	// assemble the URL
 	$data_url = 'https://spreadsheets.google.com/feeds/list/' . $sheet_id . '/public/values?alt=json';
@@ -181,7 +181,8 @@ function uri_covid_query_spreadsheet() {
 			'tests' => $row->{'gsx$tests'}->{'$t'},
 			'positives' => $row->{'gsx$positives'}->{'$t'},
 			'total_quarantine_beds' => $row->{'gsx$isoquarbeds'}->{'$t'},
-			'occupied_quarantine_beds' => $row->{'gsx$occupiedisoquarbeds'}->{'$t'}
+			'occupied_quarantine_beds' => $row->{'gsx$occupiedisoquarbeds'}->{'$t'},
+			'all_quarantine' => $row->{'gsx$non-universityisoquar'}->{'$t'}
 		);
 	}
 	return $days;

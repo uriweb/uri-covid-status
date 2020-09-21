@@ -29,7 +29,7 @@ if ( !defined('ABSPATH') )
  * date-range:				 displays the date range either as a single date or start – end.
  */
 function uri_covid_shortcode($attributes, $content, $shortcode) {
-
+	
 	// normalize attribute keys, lowercase
 	$attributes = array_change_key_case( (array)$attributes, CASE_LOWER );
 
@@ -49,10 +49,11 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 	$end = strtotime( $attributes['end'] );
 	$style = $attributes['style'];
 	
-
 	$days = uri_covid_get_days( $start, $end );
 	$totals = uri_covid_total_days( $days );
 	$range_in_days = round( ( $end - $start ) / ( 60 * 60 * 24 ) );
+	
+
 
 	$output = $attributes['before'];
 	
@@ -105,6 +106,23 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 				$output .= '<p class="uri-covid-status">' . $v . '% positive tests</p>';
 			}
 		break;
+		case 'total-isolation-all':
+			// we can't add these up; we can't average them, so only show the last day
+			// @todo: provide a message to the user
+			$last_day = $days[count($days)-1];
+			$v = ( empty( $last_day['all_quarantine'] ) ) ? '&#8203;0&#8203;' : _uri_covid_number_format( $last_day['all_quarantine'] );
+			if ( '' !== $attributes['caption'] ) {
+				$caption = $attributes['caption'];
+			} else {
+				$s = ( 1 == $v ) ? 'Student' : 'Students';
+				$caption = $s . ' in isolation / quarantine';
+			}
+			if ( shortcode_exists( 'cl-metric' ) ) {
+				$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $caption . '" class="fitted uri-covid-status" style="' . $style . '"]', FALSE );
+			} else {
+				$output .= '<p class="uri-covid-status">' . $v . ' ' . $caption . '</p>';
+			}
+		break;
 		case 'total-isolation':
 			// we can't add these up; we can't average them, so only show the last day
 			// @todo: provide a message to the user
@@ -114,7 +132,7 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 				$caption = $attributes['caption'];
 			} else {
 				$s = ( 1 == $v ) ? 'Student' : 'Students';
-				$caption = $s . ' in isolation / quarantine';
+				$caption = $s . ' in University isolation / quarantine';
 			}
 			if ( shortcode_exists( 'cl-metric' ) ) {
 				$output .= do_shortcode( '[cl-metric metric="' . $v . '" caption="' . $caption . '" class="fitted uri-covid-status" style="' . $style . '"]', FALSE );
@@ -130,7 +148,7 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 			if ( '' !== $attributes['caption'] ) {
 				$caption = $attributes['caption'];
 			} else {
-				$caption = 'Isolation / quarantine beds occupied';
+				$caption = 'University isolation / quarantine beds occupied';
 			}
 			if ( shortcode_exists( 'cl-metric' ) ) {
 				$output .= do_shortcode( '[cl-metric metric="' . $v . '%" caption="' . $caption . '" class="fitted uri-covid-status" style="' . $style . '"]', FALSE );

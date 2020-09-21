@@ -66,7 +66,7 @@
 				var data = google.visualization.arrayToDataTable(d);
 				
 				var options = getDefaultOptions();
-				options.title = 'Isolation / quarantine by date';
+				options.title = 'University isolation / quarantine by date';
 				options.vAxis.viewWindow = { min: 0, max: ymax + 20};
 				
 				var el = document.getElementById('covid-iso-quar');
