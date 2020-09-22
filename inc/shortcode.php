@@ -114,7 +114,7 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 			if ( '' !== $attributes['caption'] ) {
 				$caption = $attributes['caption'];
 			} else {
-				$s = ( 1 == $v ) ? 'Student' : 'Students';
+				$s = ( 1 == $v ) ? 'Person' : 'People';
 				$caption = $s . ' in isolation / quarantine';
 			}
 			if ( shortcode_exists( 'cl-metric' ) ) {

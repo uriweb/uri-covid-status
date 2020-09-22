@@ -182,7 +182,7 @@ function uri_covid_query_spreadsheet() {
 			'positives' => $row->{'gsx$positives'}->{'$t'},
 			'total_quarantine_beds' => $row->{'gsx$isoquarbeds'}->{'$t'},
 			'occupied_quarantine_beds' => $row->{'gsx$occupiedisoquarbeds'}->{'$t'},
-			'all_quarantine' => $row->{'gsx$non-universityisoquar'}->{'$t'}
+			'all_quarantine' => $row->{'gsx$allpeopleinisoquar'}->{'$t'}
 		);
 	}
 	return $days;
