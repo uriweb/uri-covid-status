@@ -87,6 +87,7 @@ function uri_covid_get_days( $start=FALSE, $end=FALSE ) {
 		if ( FALSE === $start ) {
 			$start = strtotime('yesterday');
 		}
+
 		return uri_covid_slice_days( $days, $start, $end );
 	}
 	
@@ -107,9 +108,12 @@ function uri_covid_slice_days( $days, $start, $end ) {
 	
 	$start_key = array_search( $s, array_column( $days, 'date' ) );
 	$end_key = array_search( $e, array_column( $days, 'date' ) );
+	
+	if( FALSE === $end_key ) {
+		$end_key = count( $days );
+	}
 
-	$slice = array_slice($days, $start_key, $end_key+1 );
-		
+	$slice = array_slice($days, $start_key, $end_key+1 );		
 	return $slice;
 }
 
