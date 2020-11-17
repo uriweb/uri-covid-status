@@ -213,18 +213,14 @@ function _uri_covid_percentage( $x, $y, $default=0 ) {
 		return $default;
 	}
 	$percentage = $x / $y * 100;
-	if( $percentage < 1 && $percentage > 0 ) {
-		return '&lt;1';
-	} else {
-		return _uri_covid_number_format( $percentage );
-	}
+	return _uri_covid_number_format( $percentage, 2 );
 }
 
 /**
  * Helper function to format numbers
  */
-function _uri_covid_number_format( $x ) {
-	return number_format( $x, 0, '.', ',' );
+function _uri_covid_number_format( $x, $decimals=0 ) {
+	return number_format( $x, $decimals, '.', ',' );
 }
 
 
