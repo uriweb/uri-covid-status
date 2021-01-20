@@ -52,7 +52,6 @@ function uri_covid_shortcode($attributes, $content, $shortcode) {
 	$days = uri_covid_get_days( $start, $end );
 	$totals = uri_covid_total_days( $days );
 	$range_in_days = round( ( $end - $start ) / ( 60 * 60 * 24 ) );
-	
 
 
 	$output = $attributes['before'];

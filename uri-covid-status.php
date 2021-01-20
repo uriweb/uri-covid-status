@@ -68,6 +68,16 @@ function uri_covid_styles() {
  */
 function uri_covid_get_days( $start=FALSE, $end=FALSE ) {
 
+// 		echo '<pre>';
+// 		echo print_r( date('Y/m/d', $start), TRUE );
+// 		echo '</pre>';	
+// 
+// 		echo '<pre>';
+// 		echo print_r( date('Y/m/d', $end), TRUE );
+// 		echo '</pre>';	
+// 
+
+
 	if ( FALSE === ( $days = get_transient( 'uri_covid_days' ) ) ) {
 		$days = uri_covid_query_spreadsheet();
 		set_transient( 'uri_covid_days', $days, HOUR_IN_SECONDS );
@@ -125,9 +135,8 @@ function uri_covid_slice_days( $days, $start, $end ) {
  * @return date
  */
 function uri_covid_start_date( $days, $start ) {
-	$s = _uri_covid_date_format( $start );
 	$first = $days[0];
-	if ( $s < $first['date'] ) {
+	if ( $start < strtotime( $first['date'] ) ) {
 		return strtotime( $first['date'] );
 	}
 	return $start;
@@ -141,9 +150,8 @@ function uri_covid_start_date( $days, $start ) {
  * @return date
  */
 function uri_covid_end_date( $days, $end ) {
-	$e = _uri_covid_date_format( $end );
 	$last = $days[count( $days ) - 1];
-	if ( $e > $last['date'] ) {
+	if ( $end > strtotime( $last['date'] ) ) {
 		return strtotime( $last['date'] );
 	}
 	return $end;
