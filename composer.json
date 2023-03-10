@@ -1,0 +1,17 @@
+{
+    "name": "uriweb/uri-covid-status",
+    "type":  "wordpress-plugin",
+    "description": "URI Covid Status is a Wordpress plugin that renders some data points from a Google Sheet.",
+    "authors": [
+        {
+            "name": "URI Web Communications",
+            "email": "web-group@uri.edu",
+            "homepage": "https://github.com/uriweb"
+        }
+    ],
+    "homepage": "https://www.uri.edu",
+    "license": "GPL-3.0-only",
+    "require": {
+        "php": ">=7.4"
+    }
+}
