@@ -3,7 +3,7 @@
 Plugin Name: URI COVID-19 Status
 Plugin URI: https://www.uri.edu
 Description: Dashboard display of COVID data
-Version: 1.0
+Version: 1.1
 Author: URI Web Communications
 Author URI: 
 @author: John Pennypacker <jpennypacker@uri.edu>
